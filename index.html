@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smart Search Engine</title>
+<style>
+:root{--bg:#0b1020;--card:#121a2d;--card2:#18223a;--text:#eef3ff;--muted:#9eabc4;--accent:#4f8cff;--danger:#ef5350;--border:#263552}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#080c17,#101a31);color:var(--text);font-family:Arial,Tahoma,sans-serif}
+.container{max-width:1200px;margin:auto;padding:22px}.hero{padding:20px 0 10px}.hero h1{margin:0 0 8px;font-size:32px}.hero p{margin:0;color:var(--muted)}
+.card{background:rgba(18,26,45,.94);border:1px solid var(--border);border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 10px 30px #0003}
+.search{display:grid;grid-template-columns:1fr auto;gap:10px}.search input{font-size:18px}
+input,select,button,textarea{font:inherit;border-radius:10px;border:1px solid var(--border);padding:11px;background:#0c1426;color:var(--text)}
+button{cursor:pointer;background:var(--accent);border:0;font-weight:700}.secondary{background:#263653}.danger{background:var(--danger)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.check{display:flex;gap:7px;align-items:center;background:#0c1426;padding:9px 12px;border-radius:10px}
+.check input{width:auto}.source{display:flex;align-items:center;justify-content:space-between;padding:10px;border:1px solid var(--border);border-radius:10px;margin:7px 0;background:#0d1629}
+.source small{color:var(--muted)}.results{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.result{overflow:hidden;background:#0e172a;border:1px solid var(--border);border-radius:14px}.thumb{width:100%;height:180px;object-fit:cover;background:#07101e}.body{padding:13px}.title{font-size:17px;font-weight:700;line-height:1.45}.meta{color:var(--muted);font-size:13px;margin:7px 0}.desc{color:#c2ccde;font-size:13px;line-height:1.5;max-height:58px;overflow:hidden}.badge{display:inline-block;padding:4px 8px;border-radius:99px;background:#203457;color:#bcd3ff;font-size:12px;margin:3px}.empty{text-align:center;color:var(--muted);padding:35px}.history button{padding:7px 10px;background:#20304b;margin:3px}.note{color:#ffd27d;font-size:13px;line-height:1.6}.hidden{display:none!important}
+@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.search{grid-template-columns:1fr}.results{grid-template-columns:1fr}}
+@media(max-width:500px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+  <section class="hero">
+    <h1>🔎 Smart Search Engine</h1>
+    <p>محرك بحث فيديو متعدد المصادر — نسخة ملف واحد قابلة للرفع مباشرة إلى GitHub</p>
+  </section>
+
+  <section class="card">
+    <div class="search">
+      <input id="q" placeholder="اكتب كلمة البحث..." autocomplete="off">
+      <button onclick="searchAll()">بحث</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label class="check"><input type="checkbox" id="keepDup" checked> الاحتفاظ بالنتائج المكررة</label>
+      <select id="sort"><option value="relevance">الأكثر صلة</option><option value="date">الأحدث</option><option value="duration">المدة</option></select>
+      <button class="secondary" onclick="clearResults()">مسح النتائج</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>المصادر</h3>
+    <div id="sources"></div>
+    <div class="row">
+      <button onclick="addSource()">+ إضافة مصدر</button>
+      <button class="secondary" onclick="resetSources()">استعادة المصادر الافتراضية</button>
+    </div>
+    <p class="note">يمكن تشغيل YouTube وGoogle Programmable Search بإضافة مفاتيحهما. المصادر الأخرى يمكن تعريفها كـ JSON API متوافق. لا يقوم هذا الملف بكشط المواقع التي تمنع الوصول البرمجي.</p>
+  </section>
+
+  <section class="card">
+    <h3>الفلاتر</h3>
+    <div class="grid">
+      <label>المدة من (دقيقة)<input id="minDur" type="number" min="0" placeholder="0"></label>
+      <label>المدة إلى (دقيقة)<input id="maxDur" type="number" min="0" placeholder="بدون حد"></label>
+      <label>التاريخ من<input id="fromDate" type="date"></label>
+      <label>التاريخ إلى<input id="toDate" type="date"></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>سجل البحث</h3>
+    <div id="history" class="history"></div>
+  </section>
+
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <h3 style="margin:0">النتائج <span id="count" class="badge">0</span></h3>
+      <span id="status" class="meta"></span>
+    </div>
+    <div id="results" class="results"><div class="empty">ابدأ بكتابة كلمة بحث.</div></div>
+  </section>
+</div>
+
+<script>
+const DEFAULT_SOURCES=[
+ {id:"youtube",name:"YouTube",type:"youtube",enabled:true,key:""},
+ {id:"google",name:"Google Programmable Search",type:"google",enabled:false,key:"",cx:""},
+ {id:"custom1",name:"مصدر JSON API",type:"json",enabled:false,url:"",key:""}
+];
+let sources=JSON.parse(localStorage.getItem("sse_sources")||"null")||DEFAULT_SOURCES;
+let results=[];
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function saveSources(){localStorage.setItem("sse_sources",JSON.stringify(sources));renderSources()}
+function renderSources(){
+ const el=document.getElementById("sources");
+ el.innerHTML=sources.map((s,i)=>`
+ <div class="source">
+  <div><b>${esc(s.name)}</b><br><small>${esc(s.type)} ${s.enabled?"• مفعّل":"• غير مفعّل"}</small></div>
+  <div class="row">
+   <button class="secondary" onclick="editSource(${i})">تعديل</button>
+   <button class="${s.enabled?"danger":"secondary"}" onclick="toggleSource(${i})">${s.enabled?"تعطيل":"تفعيل"}</button>
+   ${i>=3?`<button class="danger" onclick="deleteSource(${i})">حذف</button>`:""}
+  </div>
+ </div>`).join("");
+}
+function editSource(i){
+ const s=sources[i];
+ const name=prompt("اسم المصدر",s.name); if(name===null)return;
+ s.name=name;
+ if(s.type==="youtube"){s.key=prompt("YouTube Data API Key (اتركه فارغًا إذا لم يكن متاحًا)",s.key||"")||""}
+ else if(s.type==="google"){s.key=prompt("Google API Key",s.key||"")||"";s.cx=prompt("Search Engine ID (CX)",s.cx||"")||""}
+ else {s.url=prompt("رابط JSON API. يجب أن يعيد مصفوفة results أو items",s.url||"")||"";s.key=prompt("API Key اختياري",s.key||"")||""}
+ saveSources();
+}
+function addSource(){
+ const name=prompt("اسم المصدر الجديد");if(!name)return;
+ const type=prompt("النوع: json فقط في المصادر المخصصة حاليًا","json")||"json";
+ sources.push({id:"src_"+Date.now(),name,type,enabled:false,url:"",key:""});
+ saveSources();
+}
+function toggleSource(i){sources[i].enabled=!sources[i].enabled;saveSources()}
+function deleteSource(i){if(confirm("حذف المصدر؟")){sources.splice(i,1);saveSources()}}
+function resetSources(){if(confirm("استعادة المصادر الافتراضية؟")){sources=structuredClone(DEFAULT_SOURCES);saveSources()}}
+function historyLoad(){
+ const h=JSON.parse(localStorage.getItem("sse_history")||"[]");
+ document.getElementById("history").innerHTML=h.length?h.map(x=>`<button onclick="document.getElementById('q').value=${JSON.stringify(x)};searchAll()">${esc(x)}</button><button class="danger" onclick="removeHistory(${JSON.stringify(x)})">×</button>`).join(""):"لا يوجد سجل بعد.";
+}
+function removeHistory(x){let h=JSON.parse(localStorage.getItem("sse_history")||"[]").filter(v=>v!==x);localStorage.setItem("sse_history",JSON.stringify(h));historyLoad()}
+function addHistory(q){let h=JSON.parse(localStorage.getItem("sse_history")||"[]");h=[q,...h.filter(v=>v!==q)].slice(0,30);localStorage.setItem("sse_history",JSON.stringify(h));historyLoad()}
+function parseISODate(v){if(!v)return null;const d=new Date(v);return isNaN(d)?null:d}
+function isoDuration(s){if(!s)return 0;const m=s.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);if(!m)return 0;return (+m[1]||0)*60+(+m[2]||0)+(+m[3]||0)/60}
+function fmtDuration(min){if(!min)return "غير معروفة";let m=Math.floor(min),s=Math.round((min-m)*60);if(s===60){m++;s=0}return (m>=60?Math.floor(m/60)+"س ":"")+String(m%60).padStart(2,"0")+"د"+(s?(" "+String(s).padStart(2,"0")+"ث"):"")}
+async function searchYouTube(q,s){
+ if(!s.key)throw new Error("أضف YouTube API Key أولًا");
+ const u=new URL("https://www.googleapis.com/youtube/v3/search");u.search=new URLSearchParams({part:"snippet",q,type:"video,maxResults":50,key:s.key});
+ const a=await fetch(u).then(r=>r.json());if(a.error)throw new Error(a.error.message||"YouTube API error");
+ const ids=(a.items||[]).map(x=>x.id.videoId).filter(Boolean).join(",");
+ if(!ids)return [];
+ const d=await fetch("https://www.googleapis.com/youtube/v3/videos?"+new URLSearchParams({part:"contentDetails,snippet,statistics",id:ids,key:s.key})).then(r=>r.json());
+ return (d.items||[]).map(x=>({id:"yt_"+x.id,title:x.snippet.title,url:"https://www.youtube.com/watch?v="+x.id,thumb:x.snippet.thumbnails?.high?.url||x.snippet.thumbnails?.default?.url,source:s.name,sourceId:s.id,date:x.snippet.publishedAt,duration:isoDuration(x.contentDetails?.duration),description:x.snippet.description||"",channel:x.snippet.channelTitle||""}));
+}
+async function searchGoogle(q,s){
+ if(!s.key||!s.cx)throw new Error("أضف Google API Key و CX أولًا");
+ const u="https://www.googleapis.com/customsearch/v1?"+new URLSearchParams({key:s.key,cx:s.cx,q,searchType:"video",num:"10"});
+ const d=await fetch(u).then(r=>r.json());if(d.error)throw new Error(d.error.message||"Google API error");
+ return (d.items||[]).map((x,i)=>({id:"g_"+(x.cacheId||i),title:x.title,url:x.link,thumb:x.pagemap?.cse_thumbnail?.[0]?.src||"",source:s.name,sourceId:s.id,date:x.pagemap?.videoobject?.[0]?.uploaddate||"",duration:0,description:x.snippet||"",channel:x.pagemap?.videoobject?.[0]?.creator||""}));
+}
+async function searchJSON(q,s){
+ if(!s.url)throw new Error("أدخل رابط JSON API");
+ const u=new URL(s.url);u.searchParams.set("q",q);
+ const opt={headers:{Accept:"application/json"}};if(s.key)opt.headers.Authorization="Bearer "+s.key;
+ const d=await fetch(u,opt).then(r=>r.json());
+ const arr=d.results||d.items||d.data||[];
+ if(!Array.isArray(arr))throw new Error("الـ API لم يُرجع مصفوفة results/items/data");
+ return arr.map((x,i)=>({id:String(x.id||s.id+"_"+i),title:x.title||x.name||"بدون عنوان",url:x.url||x.link||"#",thumb:x.thumbnail||x.image||"",source:s.name,sourceId:s.id,date:x.date||x.publishedAt||x.published||"",duration:Number(x.duration||0),description:x.description||x.snippet||"",channel:x.channel||x.author||""}));
+}
+function filterResults(a){
+ const min=Number(document.getElementById("minDur").value||0),max=Number(document.getElementById("maxDur").value||Infinity);
+ const from=document.getElementById("fromDate").value?new Date(document.getElementById("fromDate").value):null;
+ const to=document.getElementById("toDate").value?new Date(document.getElementById("toDate").value+"T23:59:59"):null;
+ return a.filter(x=>(!x.duration||x.duration>=min)&&(!x.duration||x.duration<=max)&&(!from||!x.date||parseISODate(x.date)>=from)&&(!to||!x.date||parseISODate(x.date)<=to));
+}
+function sortResults(a){
+ const mode=document.getElementById("sort").value;
+ return a.sort((x,y)=>mode==="date"?(new Date(y.date||0)-new Date(x.date||0)):mode==="duration"?(x.duration-y.duration):0);
+}
+async function searchAll(){
+ const q=document.getElementById("q").value.trim();if(!q)return;
+ addHistory(q);document.getElementById("status").textContent="جارٍ البحث...";
+ const enabled=sources.filter(s=>s.enabled);if(!enabled.length){document.getElementById("status").textContent="فعّل مصدرًا واحدًا على الأقل.";return}
+ const out=[],errors=[];
+ for(const s of enabled){
+  try{
+   let a=s.type==="youtube"?await searchYouTube(q,s):s.type==="google"?await searchGoogle(q,s):await searchJSON(q,s);
+   out.push(...a);
+  }catch(e){errors.push(s.name+": "+e.message)}
+ }
+ results=out;
+ renderResults();
+ document.getElementById("status").textContent=errors.length?"اكتمل البحث مع أخطاء: "+errors.join(" | "):"تم البحث بنجاح";
+}
+function renderResults(){
+ let a=sortResults(filterResults([...results]));
+ if(!document.getElementById("keepDup").checked){const seen=new Set();a=a.filter(x=>{const k=x.url||x.title;if(seen.has(k))return false;seen.add(k);return true})}
+ document.getElementById("count").textContent=a.length;
+ document.getElementById("results").innerHTML=a.length?a.map(x=>`
+ <article class="result">
+  ${x.thumb?`<img class="thumb" src="${esc(x.thumb)}" loading="lazy" onerror="this.style.display='none'">`:`<div class="thumb"></div>`}
+  <div class="body"><div class="title">${esc(x.title)}</div>
+  <span class="badge">${esc(x.source)}</span>${x.duration?`<span class="badge">${fmtDuration(x.duration)}</span>`:""}
+  <div class="meta">${x.date?esc(new Date(x.date).toLocaleDateString("ar-EG")):"تاريخ غير متاح"}${x.channel?" • "+esc(x.channel):""}</div>
+  <div class="desc">${esc(x.description)}</div>
+  <div style="margin-top:10px"><a href="${esc(x.url)}" target="_blank" rel="noopener"><button>فتح المصدر</button></a></div></div>
+ </article>`).join(""):"<div class='empty'>لا توجد نتائج مطابقة للفلاتر.</div>";
+}
+function clearResults(){results=[];renderResults();document.getElementById("status").textContent=""}
+document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Enter")searchAll()});
+["minDur","maxDur","fromDate","toDate","sort","keepDup"].forEach(id=>document.getElementById(id).addEventListener("change",renderResults));
+renderSources();historyLoad();renderResults();
+</script>
+</body>
+</html>
