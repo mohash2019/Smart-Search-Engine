@@ -3,154 +3,701 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Smart Search Engine - محرك بحث واسع للفيديوهات على الويب">
 <title>Smart Search Engine</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#eef3ff;font-family:Arial,Tahoma,sans-serif}
-.container{max-width:1200px;margin:auto;padding:20px}.hero{text-align:center;padding:20px}.hero h1{margin:0 0 8px;font-size:34px}.muted{color:#9eabc4}
-.card{background:#121a2d;border:1px solid #293856;border-radius:18px;padding:18px;margin:14px 0}
-.search{display:grid;grid-template-columns:1fr auto;gap:10px}.input,select{width:100%;background:#0c1426;color:#fff;border:1px solid #334563;border-radius:10px;padding:12px}
-button{border:0;border-radius:10px;padding:11px 16px;background:#4f8cff;color:#fff;font-weight:700;cursor:pointer}.secondary{background:#263653}.danger{background:#d94b4b}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.source{border:1px solid #293856;border-radius:12px;padding:12px;margin:8px 0;background:#0d1629;display:flex;justify-content:space-between;gap:10px;align-items:center}
-.badge{display:inline-block;background:#203457;color:#c7dcff;border-radius:99px;padding:4px 9px;font-size:12px;margin:2px}.ok{color:#86efac}.results{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
-.result{background:#0e172a;border:1px solid #293856;border-radius:14px;overflow:hidden}.thumb{width:100%;height:175px;object-fit:cover;background:#07101e;display:grid;place-items:center;color:#60708d;font-size:40px}.body{padding:13px}.title{font-weight:700;line-height:1.5}.desc{color:#b8c3d8;font-size:13px;line-height:1.5;margin:8px 0}.empty{text-align:center;color:#9eabc4;padding:35px}
-.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:15px;z-index:20}.modal.show{display:flex}.modalbox{width:min(620px,100%);background:#121a2d;border:1px solid #344766;border-radius:18px;padding:20px;max-height:90vh;overflow:auto}.field{margin:12px 0}.field label{display:block;margin-bottom:6px;color:#cbd5e1}.help{font-size:12px;color:#94a3b8;margin-top:5px}.check{display:flex;gap:8px;align-items:center}.check input{width:auto}
+:root{
+  --bg:#07101e;--card:#101a2e;--card2:#0c1527;--border:#293b5d;
+  --text:#eef4ff;--muted:#9eacc5;--accent:#4f8cff;--accent2:#315fae;
+  --danger:#d94b4b;--success:#40c982;--warning:#e6b85c
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(135deg,#07101e,#0d1830);color:var(--text);font-family:Arial,Tahoma,sans-serif}
+button,input,select{font:inherit}
+.container{max-width:1280px;margin:auto;padding:20px}
+.hero{text-align:center;padding:20px 0 14px}
+.hero h1{margin:0 0 8px;font-size:35px}
+.hero p{margin:0;color:var(--muted);line-height:1.7}
+.card{background:rgba(16,26,46,.96);border:1px solid var(--border);border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 12px 35px #0003}
+.search{display:grid;grid-template-columns:1fr auto;gap:10px}
+.input,select{width:100%;background:#091326;color:#fff;border:1px solid #334969;border-radius:11px;padding:13px;outline:none}
+.input:focus,select:focus{border-color:var(--accent)}
+button{border:0;border-radius:11px;padding:12px 18px;background:var(--accent);color:white;font-weight:700;cursor:pointer}
+button:hover{filter:brightness(1.08)}
+.secondary{background:#263754}.danger{background:var(--danger)}.success{background:#247b56}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.check{display:flex;gap:8px;align-items:center;background:#0a1427;border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.check input{width:auto}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.field label{display:block;color:#cbd6e8;margin-bottom:6px;font-size:14px}
+.muted{color:var(--muted)}.small{font-size:12px}
+.badge{display:inline-block;padding:4px 9px;border-radius:99px;background:#20385f;color:#cbe0ff;font-size:12px;margin:2px}
+.status{min-height:22px;color:var(--muted)}
+.source{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid var(--border);background:#0b1528;border-radius:12px;padding:12px;margin:8px 0}
+.source-name{font-weight:700}.ok{color:#70e0a2}.off{color:#8795ad}
+.results{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.result{background:#0b1527;border:1px solid var(--border);border-radius:15px;overflow:hidden}
+.thumb{height:178px;width:100%;background:#07101e;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.play{font-size:44px;color:#8192ae}
+.body{padding:14px}.title{font-weight:700;line-height:1.5;font-size:16px}
+.meta{font-size:12px;color:var(--muted);margin:7px 0;line-height:1.6}
+.desc{font-size:13px;color:#b9c5d8;line-height:1.55;height:60px;overflow:hidden}
+.result-actions{margin-top:10px}
+.empty{text-align:center;color:var(--muted);padding:42px 15px}
+.hidden{display:none!important}
+.info{background:#0b1830;border:1px solid #294a78;border-radius:12px;padding:12px;color:#c6d9f5;line-height:1.7}
+.notice{background:#2a2413;border:1px solid #6e5b29;color:#f2d88e;border-radius:12px;padding:12px;line-height:1.7}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:15px;z-index:50}
+.modal.show{display:flex}
+.modalbox{width:min(650px,100%);max-height:90vh;overflow:auto;background:#111b30;border:1px solid #395172;border-radius:18px;padding:20px}
+.history{display:flex;gap:7px;flex-wrap:wrap}
+.history button{background:#1b2b48;padding:8px 11px;font-size:13px}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #ffffff66;border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-left:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.search{grid-template-columns:1fr}.source{align-items:flex-start;flex-direction:column}}
-@media(max-width:500px){.grid{grid-template-columns:1fr}}
+@media(max-width:500px){.grid{grid-template-columns:1fr}.container{padding:12px}.hero h1{font-size:28px}}
 </style>
 </head>
+
 <body>
 <div class="container">
-<section class="hero"><h1>🔎 Smart Search Engine</h1><div class="muted">محرك بحث متعدد المصادر مع إدارة مصادر كاملة</div></section>
+
+<section class="hero">
+  <h1>🔎 Smart Search Engine</h1>
+  <p>محرك بحث واسع للفيديوهات — يجمع النتائج من محركات البحث ومصادر الفيديو ويعرضها في مكان واحد.</p>
+</section>
 
 <section class="card">
-<div class="search"><input id="q" class="input" placeholder="اكتب كلمة البحث..."><button onclick="runSearch()">بحث</button></div>
-<div class="row" style="margin-top:10px">
-<label class="check"><input id="keepDup" type="checkbox" checked> الاحتفاظ بالمكرر</label>
-<select id="sort" class="input" style="width:auto"><option value="relevance">الأكثر صلة</option><option value="date">الأحدث</option><option value="duration">المدة</option></select>
-<button class="secondary" onclick="clearResults()">مسح النتائج</button>
+  <div class="search">
+    <input id="q" class="input" autocomplete="off"
+      placeholder="اكتب اسم أو وصف الفيديو الذي تبحث عنه...">
+    <button id="searchBtn" onclick="runSearch()">🔎 بحث</button>
+  </div>
+
+  <div class="row" style="margin-top:11px">
+    <label class="check">
+      <input id="keepDup" type="checkbox" checked>
+      الاحتفاظ بالنتائج المكررة
+    </label>
+
+    <select id="sort" style="width:auto">
+      <option value="relevance">الأكثر صلة</option>
+      <option value="date">الأحدث</option>
+      <option value="duration">الأطول</option>
+      <option value="durationAsc">الأقصر</option>
+      <option value="source">حسب المصدر</option>
+    </select>
+
+    <button class="secondary" onclick="clearResults()">مسح النتائج</button>
+  </div>
+
+  <div id="status" class="status" style="margin-top:10px"></div>
+</section>
+
+<section class="card">
+  <div class="row" style="justify-content:space-between">
+    <h3 style="margin:0">🌐 مصادر البحث</h3>
+    <div class="row">
+      <button onclick="openAddSource()">+ إضافة مصدر</button>
+      <button class="secondary" onclick="resetSources()">استعادة الافتراضي</button>
+    </div>
+  </div>
+
+  <div class="info" style="margin-top:12px">
+    المحرك مصمم ليستخدم <b>مزودات بحث واسعة</b> لاكتشاف صفحات الفيديو على الويب، بالإضافة إلى APIs مباشرة مثل YouTube.
+    الموقع لا يفترض أن كل موقع على الإنترنت يسمح بالوصول البرمجي؛ المصادر غير المتاحة يتم تجاوزها دون إيقاف بقية البحث.
+  </div>
+
+  <div id="sources" style="margin-top:12px"></div>
+</section>
+
+<section class="card">
+  <h3>🎛️ فلاتر النتائج</h3>
+  <div class="grid">
+    <div class="field">
+      <label>المدة من (دقيقة)</label>
+      <input id="minDur" class="input" type="number" min="0" placeholder="بدون حد">
+    </div>
+    <div class="field">
+      <label>المدة إلى (دقيقة)</label>
+      <input id="maxDur" class="input" type="number" min="0" placeholder="بدون حد">
+    </div>
+    <div class="field">
+      <label>تاريخ النشر من</label>
+      <input id="fromDate" class="input" type="date">
+    </div>
+    <div class="field">
+      <label>تاريخ النشر إلى</label>
+      <input id="toDate" class="input" type="date">
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="row" style="justify-content:space-between">
+    <h3 style="margin:0">📜 سجل البحث</h3>
+    <button class="secondary" onclick="clearHistory()">مسح السجل</button>
+  </div>
+  <div id="history" class="history" style="margin-top:10px"></div>
+</section>
+
+<section class="card">
+  <div class="row" style="justify-content:space-between">
+    <h3 style="margin:0">🎬 النتائج <span id="count" class="badge">0</span></h3>
+    <span id="resultInfo" class="muted small"></span>
+  </div>
+  <div id="results" class="results">
+    <div class="empty">اكتب عبارة البحث ثم اضغط «بحث».</div>
+  </div>
+</section>
+
 </div>
-</section>
 
-<section class="card">
-<div class="row" style="justify-content:space-between"><h3>مصادر البحث</h3><button onclick="openAdd()">+ إضافة موقع</button></div>
-<div id="sources"></div>
-<div class="muted">يمكن إضافة YouTube أو Google أو أي JSON API متوافق.</div>
-</section>
+<div id="sourceModal" class="modal">
+  <div class="modalbox">
+    <h2 id="modalTitle">إضافة مصدر بحث</h2>
 
-<section class="card">
-<h3>الفلاتر</h3>
-<div class="grid">
-<label>المدة من<input id="minDur" class="input" type="number" min="0"></label>
-<label>المدة إلى<input id="maxDur" class="input" type="number" min="0"></label>
-<label>التاريخ من<input id="from" class="input" type="date"></label>
-<label>التاريخ إلى<input id="to" class="input" type="date"></label>
+    <div class="field">
+      <label>اسم المصدر *</label>
+      <input id="sName" class="input" placeholder="مثال: YouTube">
+    </div>
+
+    <div class="field">
+      <label>نوع المصدر *</label>
+      <select id="sType" class="input" onchange="sourceTypeChanged()">
+        <option value="web">Web Search API</option>
+        <option value="youtube">YouTube Data API</option>
+        <option value="json">JSON Video API</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>API Endpoint</label>
+      <input id="sEndpoint" class="input"
+        placeholder="يستخدمه الـBackend وليس المتصفح مباشرة">
+      <div class="small muted">في النسخة الإنتاجية يفضل وضع الطلب داخل Backend لحماية مفاتيح API.</div>
+    </div>
+
+    <div class="field">
+      <label>API Key</label>
+      <input id="sKey" class="input" type="password"
+        placeholder="لا تضع مفتاحًا سريًا هنا في موقع منشور">
+    </div>
+
+    <div class="field">
+      <label>معامل البحث</label>
+      <input id="sQueryParam" class="input" value="q" placeholder="q">
+    </div>
+
+    <div class="field">
+      <label class="check">
+        <input id="sEnabled" type="checkbox" checked>
+        تفعيل المصدر
+      </label>
+    </div>
+
+    <div id="modalMsg" class="small muted" style="margin-bottom:10px"></div>
+
+    <div class="row">
+      <button onclick="saveSource()">حفظ</button>
+      <button class="secondary" onclick="closeSourceModal()">إلغاء</button>
+    </div>
+  </div>
 </div>
-</section>
-
-<section class="card">
-<div class="row" style="justify-content:space-between"><h3>النتائج <span id="count" class="badge">0</span></h3><span id="status" class="muted"></span></div>
-<div id="results" class="results"><div class="empty">اكتب كلمة بحث ثم اضغط بحث.</div></div>
-</section>
-</div>
-
-<div id="modal" class="modal">
-<div class="modalbox">
-<h2 id="modalTitle">إضافة موقع بحث</h2>
-<div class="field"><label>اسم الموقع *</label><input id="sName" class="input" placeholder="مثال: موقع الفيديو"></div>
-<div class="field"><label>نوع المصدر *</label>
-<select id="sType" class="input" onchange="typeChanged()">
-<option value="json">JSON API</option><option value="youtube">YouTube API</option><option value="google">Google Programmable Search</option>
-</select></div>
-<div id="urlField" class="field"><label>رابط API *</label><input id="sUrl" class="input" placeholder="https://example.com/api/search"><div class="help">سيتم إرسال كلمة البحث في المعامل q.</div></div>
-<div id="keyField" class="field"><label>API Key <span class="muted">(اختياري حسب المصدر)</span></label><input id="sKey" class="input" type="password" placeholder="المفتاح إذا كان مطلوبًا"></div>
-<div id="cxField" class="field" style="display:none"><label>Google Search Engine ID (CX)</label><input id="sCx" class="input" placeholder="CX"></div>
-<div class="field"><label class="check"><input id="sEnabled" type="checkbox" checked> تفعيل المصدر</label></div>
-<div class="row"><button onclick="saveSource()">حفظ الموقع</button><button class="secondary" onclick="closeModal()">إلغاء</button></div>
-<div id="modalMsg" class="help"></div>
-</div></div>
 
 <script>
-const defaults=[
-{id:"youtube",name:"YouTube",type:"youtube",enabled:false,key:""},
-{id:"google",name:"Google",type:"google",enabled:false,key:"",cx:""}
-];
-let sources=JSON.parse(localStorage.getItem("sse_sources_v3")||"null")||defaults;
-let editId=null,results=[];
-const $=id=>document.getElementById(id);
-const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+/*
+  Smart Search Engine - Frontend v2
 
-function store(){localStorage.setItem("sse_sources_v3",JSON.stringify(sources));renderSources()}
+  IMPORTANT:
+  هذه الواجهة لا تقوم بكشط كل الإنترنت بنفسها.
+  عند إضافة Backend، غيّر BACKEND_SEARCH_URL إلى endpoint الخادم،
+  مثل /api/search.
+
+  Backend المتوقع أن يستقبل:
+    GET /api/search?q=...&minDuration=...&maxDuration=...&fromDate=...&toDate=...
+
+  وأن يعيد:
+  {
+    "results": [
+      {
+        "title": "...",
+        "url": "https://...",
+        "thumbnail": "https://...",
+        "source": "...",
+        "date": "2026-01-01T00:00:00Z",
+        "duration": 12.5,
+        "description": "..."
+      }
+    ]
+  }
+*/
+
+const BACKEND_SEARCH_URL = "/api/search";
+
+const DEFAULT_SOURCES = [
+  {
+    id:"web",
+    name:"Web Search",
+    type:"web",
+    enabled:true,
+    endpoint:"",
+    key:"",
+    queryParam:"q",
+    builtin:true
+  },
+  {
+    id:"youtube",
+    name:"YouTube",
+    type:"youtube",
+    enabled:false,
+    endpoint:"https://www.googleapis.com/youtube/v3/search",
+    key:"",
+    queryParam:"q",
+    builtin:true
+  }
+];
+
+let sources = JSON.parse(localStorage.getItem("sse_sources_v4") || "null") || DEFAULT_SOURCES;
+let history = JSON.parse(localStorage.getItem("sse_history_v4") || "[]");
+let currentResults = [];
+let editingSourceId = null;
+
+const $ = id => document.getElementById(id);
+
+function esc(value){
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[ch]));
+}
+
+function saveSources(){
+  localStorage.setItem("sse_sources_v4", JSON.stringify(sources));
+  renderSources();
+}
+
 function renderSources(){
- $("sources").innerHTML=sources.length?sources.map(s=>`
- <div class="source">
- <div><b>${esc(s.name)}</b><br><span class="badge">${esc(s.type)}</span> <span class="${s.enabled?"ok":"muted"}">${s.enabled?"● مفعّل":"● متوقف"}</span></div>
- <div class="row">
- <button class="secondary" onclick="toggleSource('${s.id}')">${s.enabled?"تعطيل":"تفعيل"}</button>
- <button class="secondary" onclick="editSource('${s.id}')">تعديل</button>
- <button class="secondary" onclick="testSource('${s.id}')">اختبار</button>
- ${s.id.startsWith("custom_")?`<button class="danger" onclick="deleteSource('${s.id}')">حذف</button>`:""}
- </div></div>`).join(""):"<div class='empty'>لا توجد مصادر.</div>";
+  $("sources").innerHTML = sources.length
+    ? sources.map(s => `
+      <div class="source">
+        <div>
+          <div class="source-name">${esc(s.name)}</div>
+          <span class="badge">${esc(s.type)}</span>
+          <span class="${s.enabled ? "ok" : "off"}">
+            ${s.enabled ? "● مفعّل" : "● متوقف"}
+          </span>
+        </div>
+        <div class="row">
+          <button class="secondary" onclick="toggleSource('${esc(s.id)}')">
+            ${s.enabled ? "تعطيل" : "تفعيل"}
+          </button>
+          <button class="secondary" onclick="editSource('${esc(s.id)}')">تعديل</button>
+          ${s.id.startsWith("custom_")
+            ? `<button class="danger" onclick="deleteSource('${esc(s.id)}')">حذف</button>`
+            : ""}
+        </div>
+      </div>
+    `).join("")
+    : `<div class="empty">لا توجد مصادر.</div>`;
 }
-function openAdd(){editId=null;clearForm();$("modalTitle").textContent="إضافة موقع بحث";$("modal").classList.add("show");typeChanged()}
-function closeModal(){$("modal").classList.remove("show")}
-function clearForm(){$("sName").value="";$("sType").value="json";$("sUrl").value="";$("sKey").value="";$("sCx").value="";$("sEnabled").checked=true;$("modalMsg").textContent=""}
-function editSource(id){let s=sources.find(x=>x.id===id);if(!s)return;editId=id;$("modalTitle").textContent="تعديل موقع";$("sName").value=s.name;$("sType").value=s.type;$("sUrl").value=s.url||"";$("sKey").value=s.key||"";$("sCx").value=s.cx||"";$("sEnabled").checked=!!s.enabled;$("modal").classList.add("show");typeChanged()}
-function typeChanged(){let t=$("sType").value;$("urlField").style.display=t==="json"?"block":"none";$("cxField").style.display=t==="google"?"block":"none";$("keyField").querySelector("label").innerHTML=t==="youtube"?"YouTube API Key *":t==="google"?"Google API Key *":"API Key (اختياري)"}
+
+function toggleSource(id){
+  const s = sources.find(x => x.id === id);
+  if(!s) return;
+  s.enabled = !s.enabled;
+  saveSources();
+}
+
+function deleteSource(id){
+  if(!confirm("هل تريد حذف هذا المصدر؟")) return;
+  sources = sources.filter(s => s.id !== id);
+  saveSources();
+}
+
+function resetSources(){
+  if(!confirm("استعادة المصادر الافتراضية؟")) return;
+  sources = JSON.parse(JSON.stringify(DEFAULT_SOURCES));
+  saveSources();
+}
+
+function openAddSource(){
+  editingSourceId = null;
+  $("modalTitle").textContent = "إضافة مصدر بحث";
+  $("sName").value = "";
+  $("sType").value = "web";
+  $("sEndpoint").value = "";
+  $("sKey").value = "";
+  $("sQueryParam").value = "q";
+  $("sEnabled").checked = true;
+  $("modalMsg").textContent = "";
+  $("sourceModal").classList.add("show");
+}
+
+function editSource(id){
+  const s = sources.find(x => x.id === id);
+  if(!s) return;
+
+  editingSourceId = id;
+  $("modalTitle").textContent = "تعديل مصدر";
+  $("sName").value = s.name || "";
+  $("sType").value = s.type || "web";
+  $("sEndpoint").value = s.endpoint || "";
+  $("sKey").value = s.key || "";
+  $("sQueryParam").value = s.queryParam || "q";
+  $("sEnabled").checked = !!s.enabled;
+  $("modalMsg").textContent = "";
+  $("sourceModal").classList.add("show");
+}
+
+function closeSourceModal(){
+  $("sourceModal").classList.remove("show");
+}
+
+function sourceTypeChanged(){
+  const type = $("sType").value;
+  if(type === "youtube"){
+    $("sEndpoint").value ||= "https://www.googleapis.com/youtube/v3/search";
+    $("sQueryParam").value = "q";
+  }
+}
+
 function saveSource(){
- let name=$("sName").value.trim(),type=$("sType").value,url=$("sUrl").value.trim(),key=$("sKey").value.trim(),cx=$("sCx").value.trim();
- if(!name){$("modalMsg").textContent="❌ اكتب اسم الموقع.";return}
- if(type==="json"&&!url){$("modalMsg").textContent="❌ اكتب رابط API.";return}
- if(type==="youtube"&&!key){$("modalMsg").textContent="❌ أضف YouTube API Key.";return}
- if(type==="google"&&(!key||!cx)){$("modalMsg").textContent="❌ أضف API Key و CX.";return}
- let data={name,type,url,key,cx,enabled:$("sEnabled").checked};
- if(editId)Object.assign(sources.find(x=>x.id===editId),data);else sources.push({id:"custom_"+Date.now(),...data});
- store();closeModal()
+  const name = $("sName").value.trim();
+  const type = $("sType").value;
+  const endpoint = $("sEndpoint").value.trim();
+  const key = $("sKey").value.trim();
+  const queryParam = $("sQueryParam").value.trim() || "q";
+  const enabled = $("sEnabled").checked;
+
+  if(!name){
+    $("modalMsg").textContent = "❌ يجب كتابة اسم المصدر.";
+    return;
+  }
+
+  const data = {name,type,endpoint,key,queryParam,enabled};
+
+  if(editingSourceId){
+    const old = sources.find(x => x.id === editingSourceId);
+    if(old) Object.assign(old, data);
+  }else{
+    sources.push({
+      id:"custom_" + Date.now(),
+      ...data
+    });
+  }
+
+  saveSources();
+  closeSourceModal();
 }
-function toggleSource(id){let s=sources.find(x=>x.id===id);s.enabled=!s.enabled;store()}
-function deleteSource(id){if(confirm("حذف الموقع؟")){sources=sources.filter(s=>s.id!==id);store()}}
-async function testSource(id){
- let s=sources.find(x=>x.id===id);$("status").textContent="جارٍ اختبار "+s.name+"...";
- if(s.type==="json"){$("status").textContent=s.url?"✅ تم حفظ إعدادات رابط JSON":"❌ رابط API غير موجود";return}
- if(s.type==="google"){$("status").textContent=s.key&&s.cx?"✅ API Key وCX موجودان":"❌ أضف API Key وCX";return}
- if(!s.key){$("status").textContent="❌ YouTube API Key غير موجود";return}
- try{let d=await fetch("https://www.googleapis.com/youtube/v3/search?"+new URLSearchParams({part:"snippet",q:"test",type:"video",maxResults:"1",key:s.key})).then(r=>r.json());$("status").textContent=d.error?"❌ "+d.error.message:"✅ اتصال YouTube يعمل"}catch(e){$("status").textContent="❌ "+e.message}
+
+function addHistory(q){
+  history = [q, ...history.filter(x => x !== q)].slice(0, 20);
+  localStorage.setItem("sse_history_v4", JSON.stringify(history));
+  renderHistory();
 }
-function iso(s){if(!s)return 0;let m=s.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);return m?((+m[1]||0)*60+(+m[2]||0)+(+m[3]||0)/60):0}
-async function yt(q,s){
- if(!s.key)throw Error("YouTube API Key غير مضاف");
- let a=await fetch("https://www.googleapis.com/youtube/v3/search?"+new URLSearchParams({part:"snippet",q,type:"video",maxResults:"50",key:s.key})).then(r=>r.json());
- if(a.error)throw Error(a.error.message);let ids=(a.items||[]).map(x=>x.id.videoId).filter(Boolean).join(",");if(!ids)return[];
- let d=await fetch("https://www.googleapis.com/youtube/v3/videos?"+new URLSearchParams({part:"contentDetails,snippet",id:ids,key:s.key})).then(r=>r.json());
- return(d.items||[]).map(x=>({title:x.snippet.title,url:"https://www.youtube.com/watch?v="+x.id,thumb:x.snippet.thumbnails?.high?.url||"",source:s.name,date:x.snippet.publishedAt,duration:iso(x.contentDetails?.duration),description:x.snippet.description||""}))
+
+function renderHistory(){
+  $("history").innerHTML = history.length
+    ? history.map(q =>
+      `<button onclick="useHistory(${JSON.stringify(q)})">${esc(q)}</button>`
+    ).join("")
+    : `<span class="muted">لا يوجد بحث سابق.</span>`;
 }
-async function google(q,s){
- if(!s.key||!s.cx)throw Error("Google API Key وCX مطلوبان");
- let d=await fetch("https://www.googleapis.com/customsearch/v1?"+new URLSearchParams({key:s.key,cx:s.cx,q,searchType:"video",num:"10"})).then(r=>r.json());if(d.error)throw Error(d.error.message);
- return(d.items||[]).map(x=>({title:x.title,url:x.link,thumb:x.pagemap?.cse_thumbnail?.[0]?.src||"",source:s.name,date:x.pagemap?.videoobject?.[0]?.uploaddate||"",description:x.snippet||""}))
+
+function useHistory(q){
+  $("q").value = q;
+  runSearch();
 }
-async function jsonApi(q,s){
- if(!s.url)throw Error("رابط API غير موجود");let u=new URL(s.url);u.searchParams.set("q",q);let h={Accept:"application/json"};if(s.key)h.Authorization="Bearer "+s.key;
- let d=await fetch(u,{headers:h}).then(r=>r.json()),a=d.results||d.items||d.data;if(!Array.isArray(a))throw Error("يجب أن يعيد API results أو items أو data");
- return a.map(x=>({title:x.title||x.name||"بدون عنوان",url:x.url||x.link||"#",thumb:x.thumbnail||x.image||"",source:s.name,date:x.date||x.publishedAt||"",duration:Number(x.duration||0),description:x.description||x.snippet||""}))
+
+function clearHistory(){
+  history = [];
+  localStorage.removeItem("sse_history_v4");
+  renderHistory();
 }
+
+function clearResults(){
+  currentResults = [];
+  $("count").textContent = "0";
+  $("resultInfo").textContent = "";
+  $("results").innerHTML = `<div class="empty">تم مسح النتائج.</div>`;
+  $("status").textContent = "";
+}
+
+function durationMinutes(value){
+  if(value === null || value === undefined || value === "") return 0;
+
+  if(typeof value === "number") return value;
+
+  const s = String(value);
+
+  if(/^\d+:\d+(:\d+)?$/.test(s)){
+    const parts = s.split(":").map(Number);
+    if(parts.length === 2) return parts[0] + parts[1]/60;
+    return parts[0]*60 + parts[1] + parts[2]/60;
+  }
+
+  const iso = s.match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/i);
+  if(iso){
+    return (Number(iso[1]||0)*60) +
+           Number(iso[2]||0) +
+           Number(iso[3]||0)/60;
+  }
+
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function normalizeResult(x, fallbackSource="Unknown"){
+  return {
+    title: x.title || x.name || "بدون عنوان",
+    url: x.url || x.link || "#",
+    thumbnail: x.thumbnail || x.thumb || x.image || "",
+    source: x.source || fallbackSource,
+    date: x.date || x.publishedAt || x.uploadDate || "",
+    duration: durationMinutes(x.duration),
+    description: x.description || x.snippet || ""
+  };
+}
+
+function applyFilters(list){
+  const min = Number($("minDur").value);
+  const max = Number($("maxDur").value);
+  const from = $("fromDate").value;
+  const to = $("toDate").value;
+
+  return list.filter(r => {
+    if(Number.isFinite(min) && $("minDur").value !== "" && r.duration < min) return false;
+    if(Number.isFinite(max) && $("maxDur").value !== "" && r.duration > max) return false;
+
+    if(from && r.date){
+      const d = new Date(r.date);
+      if(!Number.isNaN(d.getTime()) && d < new Date(from+"T00:00:00")) return false;
+    }
+
+    if(to && r.date){
+      const d = new Date(r.date);
+      if(!Number.isNaN(d.getTime()) && d > new Date(to+"T23:59:59")) return false;
+    }
+
+    return true;
+  });
+}
+
+function sortResults(list){
+  const mode = $("sort").value;
+  const copy = [...list];
+
+  if(mode === "date"){
+    return copy.sort((a,b) => new Date(b.date||0) - new Date(a.date||0));
+  }
+
+  if(mode === "duration"){
+    return copy.sort((a,b) => b.duration - a.duration);
+  }
+
+  if(mode === "durationAsc"){
+    return copy.sort((a,b) => a.duration - b.duration);
+  }
+
+  if(mode === "source"){
+    return copy.sort((a,b) => String(a.source).localeCompare(String(b.source)));
+  }
+
+  return copy;
+}
+
+function deduplicate(list){
+  const seen = new Set();
+
+  return list.filter(r => {
+    const key = (r.url || "").trim().toLowerCase();
+    if(!key) return true;
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function renderResults(list){
+  $("count").textContent = list.length;
+
+  if(!list.length){
+    $("results").innerHTML =
+      `<div class="empty">لم يتم العثور على نتائج مطابقة للفلاتر الحالية.</div>`;
+    return;
+  }
+
+  $("results").innerHTML = list.map(r => `
+    <article class="result">
+      <div class="thumb">
+        ${r.thumbnail
+          ? `<img src="${esc(r.thumbnail)}" alt="" loading="lazy"
+               onerror="this.style.display='none'">`
+          : `<span class="play">▶</span>`}
+      </div>
+      <div class="body">
+        <div class="title">${esc(r.title)}</div>
+        <div class="meta">
+          <span class="badge">${esc(r.source)}</span>
+          ${r.date ? `📅 ${esc(new Date(r.date).toLocaleDateString("ar-EG"))}` : ""}
+          ${r.duration ? ` · ⏱️ ${esc(r.duration.toFixed(1))} دقيقة` : ""}
+        </div>
+        <div class="desc">${esc(r.description)}</div>
+        <div class="result-actions">
+          <a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">
+            <button>▶ فتح الفيديو</button>
+          </a>
+        </div>
+      </div>
+    </article>
+  `).join("");
+}
+
+async function searchBackend(q){
+  const params = new URLSearchParams({
+    q,
+    minDuration: $("minDur").value || "",
+    maxDuration: $("maxDur").value || "",
+    fromDate: $("fromDate").value || "",
+    toDate: $("toDate").value || ""
+  });
+
+  const response = await fetch(BACKEND_SEARCH_URL + "?" + params.toString(), {
+    headers: {"Accept":"application/json"}
+  });
+
+  if(!response.ok){
+    throw new Error("Backend HTTP " + response.status);
+  }
+
+  const data = await response.json();
+  const raw = Array.isArray(data) ? data : (data.results || data.items || []);
+
+  return raw.map(x => normalizeResult(x, "Web Search"));
+}
+
+async function searchYouTubeDirect(q, source){
+  if(!source.key){
+    throw new Error("YouTube API Key غير مضاف");
+  }
+
+  const url = source.endpoint ||
+    "https://www.googleapis.com/youtube/v3/search";
+
+  const params = new URLSearchParams({
+    part:"snippet",
+    q:q,
+    type:"video",
+    maxResults:"50",
+    key:source.key
+  });
+
+  const response = await fetch(url + "?" + params.toString());
+  const data = await response.json();
+
+  if(data.error){
+    throw new Error(data.error.message || "YouTube API error");
+  }
+
+  return (data.items || []).map(item => normalizeResult({
+    title:item.snippet?.title,
+    url:"https://www.youtube.com/watch?v="+item.id?.videoId,
+    thumbnail:item.snippet?.thumbnails?.high?.url ||
+             item.snippet?.thumbnails?.medium?.url || "",
+    source:source.name,
+    date:item.snippet?.publishedAt,
+    description:item.snippet?.description
+  }, source.name));
+}
+
 async function runSearch(){
- let q=$("q").value.trim();if(!q)return;let active=sources.filter(s=>s.enabled);if(!active.length){$("status").textContent="❌ فعّل مصدرًا واحدًا على الأقل.";return}
- $("status").textContent="جارٍ البحث...";let all=[],err=[];
- for(let s of active)try{all.push(...(s.type==="youtube"?await yt(q,s):s.type==="google"?await google(q,s):await jsonApi(q,s)))}catch(e){err.push(s.name+": "+e.message)}
- results=all;renderResults();$("status").textContent=err.length?"تم مع أخطاء: "+err.join(" | "):"تم البحث بنجاح"
+  const q = $("q").value.trim();
+
+  if(!q){
+    $("status").textContent = "⚠️ اكتب عبارة البحث أولًا.";
+    return;
+  }
+
+  addHistory(q);
+
+  $("searchBtn").disabled = true;
+  $("searchBtn").innerHTML = `<span class="spinner"></span> بحث...`;
+  $("status").textContent = "🔎 جاري البحث وجمع النتائج...";
+  $("resultInfo").textContent = "";
+
+  const enabled = sources.filter(s => s.enabled);
+  const all = [];
+  const errors = [];
+
+  /*
+    أولًا: نطلب البحث من Backend.
+    هذا هو المسار الأساسي للبحث الواسع في الإنترنت.
+  */
+  try{
+    const backendResults = await searchBackend(q);
+    all.push(...backendResults);
+  }catch(error){
+    errors.push("Backend: " + error.message);
+  }
+
+  /*
+    ثانيًا: YouTube المباشر اختياري.
+    في الإنتاج يفضل نقل هذا الطلب إلى Backend أيضًا
+    حتى لا يظهر API Key للمستخدم.
+  */
+  const youtubeSources = enabled.filter(s => s.type === "youtube");
+
+  for(const source of youtubeSources){
+    try{
+      const data = await searchYouTubeDirect(q, source);
+      all.push(...data);
+    }catch(error){
+      errors.push(source.name + ": " + error.message);
+    }
+  }
+
+  let final = all.map(x => normalizeResult(x));
+
+  if(!$("keepDup").checked){
+    final = deduplicate(final);
+  }
+
+  final = applyFilters(final);
+  final = sortResults(final);
+
+  currentResults = final;
+  renderResults(final);
+
+  $("resultInfo").textContent =
+    `تم جمع ${all.length} نتيجة، وعرض ${final.length} نتيجة بعد الفلاتر.`;
+
+  $("status").textContent = errors.length
+    ? "⚠️ تم البحث مع وجود مصادر لم تستجب: " + errors.join(" | ")
+    : "✅ اكتمل البحث.";
+
+  $("searchBtn").disabled = false;
+  $("searchBtn").textContent = "🔎 بحث";
 }
-function renderResults(){
- let a=[...results],min=Number($("minDur").value||0),max=Number($("maxDur").value||Infinity),from=$("from").value,to=$("to").value;
- a=a.filter(x=>(!x.duration||x.duration>=min)&&(!x.duration||x.duration<=max)&&(!from||!x.date||x.date.slice(0,10)>=from)&&(!to||!x.date||x.date.slice(0,10)<=to));
- if(!$("keepDup").checked){let seen=new Set();a=a.filter(x=>{let k=x.url||x.title;if(seen.has(k))return false;seen.add(k);return true})}
- if($("sort").value==="date")a.sort((x,y)=>new Date(y.date||0)-new Date(x.date||0));if($("sort").value==="duration")a.sort((x,y)=>(x.duration||0)-(y.duration||0));
- $("count").textContent=a.length;$("results").innerHTML=a.length?a.map(x=>`<article class="result">${x.thumb?`<img class="thumb" src="${esc(x.thumb)}">`:`<div class="thumb">▶</div>`}<div class="body"><div class="title">${esc(x.title)}</div><span class="badge">${esc(x.source)}</span><div class="desc">${esc(x.description)}</div><div class="muted">${x.date?esc(x.date.slice(0,10)):"تاريخ غير متاح"}</div><div style="margin-top:10px"><a href="${esc(x.url)}" target="_blank" rel="noopener"><button>فتح النتيجة</button></a></div></div></article>`).join(""):"<div class='empty'>لا توجد نتائج.</div>"
-}
-function clearResults(){results=[];renderResults();$("status").textContent=""}
-["minDur","maxDur","from","to","sort","keepDup"].forEach(id=>$(id).addEventListener("change",renderResults));
-$("q").addEventListener("keydown",e=>{if(e.key==="Enter")runSearch()});
-renderSources();renderResults();
+
+$("q").addEventListener("keydown", e => {
+  if(e.key === "Enter") runSearch();
+});
+
+["minDur","maxDur","fromDate","toDate","sort","keepDup"].forEach(id => {
+  $(id).addEventListener("change", () => {
+    if(currentResults.length){
+      let list = currentResults.map(x => x);
+      if(!$("keepDup").checked) list = deduplicate(list);
+      list = applyFilters(list);
+      list = sortResults(list);
+      renderResults(list);
+    }
+  });
+});
+
+renderSources();
+renderHistory();
 </script>
 </body>
 </html>
